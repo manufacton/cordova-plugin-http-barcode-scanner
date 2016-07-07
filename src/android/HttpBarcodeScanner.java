@@ -26,7 +26,7 @@ public class HttpBarcodeScanner extends CordovaPlugin {
         if (action.equals("startCamera")) {
             String message = args.getString(0);
             this.startCamera(message, callbackContext);
-            
+
             return true;
         }
         if (action.equals("getQr")) {
@@ -36,13 +36,13 @@ public class HttpBarcodeScanner extends CordovaPlugin {
         }
         if (action.equals("closeCamera")) {
             String message = args.getString(0);
-            this.closeCamera(message, callbackContext);        
+            this.closeCamera(message, callbackContext);
             return true;
         }
         return false;
     }
 
-   
+
 
     private void startCamera(String message, CallbackContext callbackContext) {
         try {
@@ -57,9 +57,9 @@ public class HttpBarcodeScanner extends CordovaPlugin {
     }
 
     private void closeCamera(String message, final CallbackContext callbackContext) {
-        cordova.getThreadPool().execute(new Runnable() {
-            public void run() {
-                try {    
+        //cordova.getThreadPool().execute(new Runnable() {
+        //  public void run() {
+                try {
                     server.stop();
                     cameraManager.onPause();
                     callbackContext.success("camera server stopped");
@@ -67,14 +67,14 @@ public class HttpBarcodeScanner extends CordovaPlugin {
                     e.printStackTrace();
                     callbackContext.error(e.toString());
                 }
-            }
-        });
+        //    }
+        //});
     }
 
     private void getQr(String message, CallbackContext callbackContext) {
         if(cameraManager != null)
             callbackContext.success(cameraManager.qrCode);
-        else 
+        else
             callbackContext.error("Camera server not initialized");
     }
 }
