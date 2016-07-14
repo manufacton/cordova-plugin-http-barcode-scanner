@@ -77,14 +77,22 @@
     NSDictionary* videoSettings = [NSDictionary dictionaryWithObject:value forKey:key];
     [captureOutput setVideoSettings:videoSettings];
     
+    // Update the orientation based on device's current
+    AVCaptureConnection* connection = [captureOutput connectionWithMediaType:AVMediaTypeVideo];
+    if ([connection isVideoOrientationSupported]) {
+        connection.videoOrientation = [self videoOrientationFromDeviceOrientation];
+    }
+    // Create the MetDataCapture
+    AVCaptureMetadataOutput *captureMetadataOutput = [[AVCaptureMetadataOutput alloc] init];
+
     dispatch_queue_t dispatchQueue;
     dispatchQueue = dispatch_queue_create("myQueue", NULL);
     [captureMetadataOutput setMetadataObjectsDelegate:self queue:dispatchQueue];
-    
-       
+
+
     //And we create a capture session
     self.captureSession = [[AVCaptureSession alloc] init];
-    
+
 
     //We add input and output
     [self.captureSession addInput:captureInput];
@@ -93,15 +101,6 @@
 
     [captureMetadataOutput setMetadataObjectTypes:[NSArray arrayWithObject:AVMetadataObjectTypeQRCode]];
 
-    // Update the orientation based on device's current
-    AVCaptureConnection* connection = [captureOutput connectionWithMediaType:AVMediaTypeVideo];
-    if ([connection isVideoOrientationSupported]) {
-        connection.videoOrientation = [self videoOrientationFromDeviceOrientation];
-        // [videoConnection setVideoOrientation:[UIDevice currentDevice].orientation];
-    }
-    
-    // Create the MetDataCapture
-    AVCaptureMetadataOutput *captureMetadataOutput = [[AVCaptureMetadataOutput alloc] init];
     
     /*if ([self.captureSession canSetSessionPreset:AVCaptureSessionPreset1920x1080])
     {
