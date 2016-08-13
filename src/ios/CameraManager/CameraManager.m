@@ -175,10 +175,13 @@
 -(AVCaptureVideoOrientation)videoOrientationFromDeviceOrientation {
     AVCaptureVideoOrientation result = [UIDevice currentDevice].orientation;
     if ( result == UIDeviceOrientationLandscapeLeft )
-        result = AVCaptureVideoOrientationLandscapeRight;
-    else if ( result == UIDeviceOrientationLandscapeRight )
-        result = AVCaptureVideoOrientationLandscapeLeft;
-    return result;
+        return AVCaptureVideoOrientationLandscapeRight;
+    if ( result == UIDeviceOrientationLandscapeRight )
+        return AVCaptureVideoOrientationLandscapeLeft;
+    if ( result == UIDeviceOrientationPortrait)
+        return AVCaptureVideoOrientationPortrait;
+    if ( result == UIDeviceOrientationPortraitUpsideDown)
+        return AVCaptureVideoOrientationPortraitUpsideDown;
 }
 
 
