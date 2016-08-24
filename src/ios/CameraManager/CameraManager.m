@@ -76,12 +76,7 @@
     
     NSDictionary* videoSettings = [NSDictionary dictionaryWithObject:value forKey:key];
     [captureOutput setVideoSettings:videoSettings];
-    
-    // Update the orientation based on device's current
-    AVCaptureConnection* connection = [captureOutput connectionWithMediaType:AVMediaTypeVideo];
-    if ([connection isVideoOrientationSupported]) {
-        connection.videoOrientation = [self videoOrientationFromDeviceOrientation];
-    }
+
     // Create the MetDataCapture
     AVCaptureMetadataOutput *captureMetadataOutput = [[AVCaptureMetadataOutput alloc] init];
 
@@ -101,7 +96,13 @@
 
     [captureMetadataOutput setMetadataObjectTypes:[NSArray arrayWithObject:AVMetadataObjectTypeQRCode]];
 
-    
+    // Update the orientation based on device's current
+    AVCaptureConnection* connection = [captureOutput connectionWithMediaType:AVMediaTypeVideo];
+    if ([connection isVideoOrientationSupported]) {
+        NSLog(@"Can set orientation");
+        [connection setVideoOrientation:[self videoOrientationFromDeviceOrientation]];
+    }
+
     /*if ([self.captureSession canSetSessionPreset:AVCaptureSessionPreset1920x1080])
     {
      NSLog(@"Set preview port to 1920X1080");
@@ -118,13 +119,13 @@
         NSLog(@"Set preview port to 640X480");
         self.captureSession.sessionPreset = AVCaptureSessionPreset640x480;
     }
-    
+
     // Limit camera FPS to 15 for single core devices (iPhone 4 and older) so more CPU power is available for decoder
     host_basic_info_data_t hostInfo;
     mach_msg_type_number_t infoCount;
     infoCount = HOST_BASIC_INFO_COUNT;
     host_info( mach_host_self(), HOST_BASIC_INFO, (host_info_t)&hostInfo, &infoCount ) ;
-    
+
     if (hostInfo.max_cpus < 2)
     {
         if ([self.device respondsToSelector:@selector(setActiveVideoMinFrameDuration:)]){
@@ -141,19 +142,19 @@
     {
         // High FPS using Slow Motion Capture (60-120FPS) :)
         int highest = 0;
-        
+
         for(AVCaptureDeviceFormat *vFormat in [self.device formats] )
         {
             CMFormatDescriptionRef description= vFormat.formatDescription;
-            
+
             float maxrate= 0;
             for ( AVFrameRateRange *range in vFormat.videoSupportedFrameRateRanges ) {
-                
+
                 if ( range.maxFrameRate > maxrate ) {
                     maxrate = range.maxFrameRate;
                 }
             }
-            
+
             if(maxrate>59 && CMFormatDescriptionGetMediaSubType(description)==kCVPixelFormatType_32BGRA)
             {
                 if ( YES == [self.device lockForConfiguration:NULL] )
@@ -163,7 +164,7 @@
                     [self.device  setActiveVideoMaxFrameDuration:CMTimeMake(1,maxrate)];
                     [self.device  unlockForConfiguration];
                     NSLog(@"formats  %@ %@ %@",vFormat.mediaType,vFormat.formatDescription,vFormat.videoSupportedFrameRateRanges);
-                    
+
                     highest = maxrate;
                 }
             }
@@ -173,7 +174,7 @@
 }
 
 -(AVCaptureVideoOrientation)videoOrientationFromDeviceOrientation {
-    AVCaptureVideoOrientation result = [UIDevice currentDevice].orientation;
+    UIDeviceOrientation result = [UIDevice currentDevice].orientation;
     if ( result == UIDeviceOrientationLandscapeLeft )
         return AVCaptureVideoOrientationLandscapeRight;
     if ( result == UIDeviceOrientationLandscapeRight )
