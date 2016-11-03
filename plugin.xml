@@ -29,9 +29,9 @@
                      target-dir="src/com/manufacton/cordova/HttpBarcodeScanner"/>
         <source-file src="src/android/BytesHolder.java"
                      target-dir="src/com/manufacton/cordova/HttpBarcodeScanner"/>
-        <source-file src="src/android/zxing-3.2.1.jar"
+        <source-file src="src/android/zxing-3.3.0.jar"
                      target-dir="libs"/>
-         <source-file src="src/android/zxing-core-3.2.1.jar"
+         <source-file src="src/android/zxing-core-3.3.0.jar"
                      target-dir="libs"/>
     </platform>
     <platform name="ios">
@@ -103,7 +103,7 @@
 
         <header-file src="src/ios/CameraManager/CameraManager.h" />
         <source-file src="src/ios/CameraManager/CameraManager.m" />
-        
+
         <header-file src="src/ios/CocoaHttpd/Responses/HTTPVideoResponse.h" />
         <source-file src="src/ios/CocoaHttpd/Responses/HTTPVideoResponse.m" />
 
