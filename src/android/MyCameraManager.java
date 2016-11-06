@@ -1,9 +1,9 @@
 /*
     Modified by Tarun Garg, for Manufacton Inc.
     Altered the original file to have preview mode only on imageReader
-    and scan for barcodes present in the image every time a new 
+    and scan for barcodes present in the image every time a new
     image is available on ImageReader
-*/
+    */
 
 /*
  * Copyright 2014 The Android Open Source Project
@@ -236,11 +236,11 @@ public class MyCameraManager {
 
         @Override
         public void onImageAvailable(ImageReader reader) {
-            if(reader == null){
+            if (reader == null) {
                 return;
             }
             Image image = reader.acquireLatestImage();
-            if(image == null){
+            if (image == null) {
                 return;
             }
             ByteBuffer buffer = image.getPlanes()[0].getBuffer();
@@ -248,9 +248,9 @@ public class MyCameraManager {
             buffer.get(lastFrameBytes);
             image.close();
             final Bitmap bMap = BitmapFactory.decodeByteArray(lastFrameBytes, 0, lastFrameBytes.length);
-            int[] intArray = new int[bMap.getWidth() * bMap.getHeight()];  
-             //copy pixel data from the Bitmap into the 'intArray' array  
-            bMap.getPixels(intArray, 0, bMap.getWidth(), 0, 0, bMap.getWidth(), bMap.getHeight());  
+            int[] intArray = new int[bMap.getWidth() * bMap.getHeight()];
+            //copy pixel data from the Bitmap into the 'intArray' array
+            bMap.getPixels(intArray, 0, bMap.getWidth(), 0, 0, bMap.getWidth(), bMap.getHeight());
 
             LuminanceSource source = new RGBLuminanceSource(bMap.getWidth(), bMap.getHeight(), intArray);
             BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
@@ -258,7 +258,7 @@ public class MyCameraManager {
             Log.d(TAG, "HAVE A NEW IMAGE");
             try {
                 Result result = qrReader.decode(bitmap);
-                qrCode = result.getText(); 
+                qrCode = result.getText();
                 Log.d(TAG, qrCode);
             } catch (NotFoundException e) {
                 // e.printStackTrace();
@@ -270,7 +270,7 @@ public class MyCameraManager {
                 e.printStackTrace();
                 return;
             }
-            
+
             // mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
         }
 
@@ -316,11 +316,11 @@ public class MyCameraManager {
 
         private void process(CaptureResult result) {
             Log.d(TAG, "have a camera resilt");
-    
-            }
-        };
 
-    
+        }
+    };
+
+
     /**
      * Given {@code choices} of {@code Size}s supported by a camera, choose the smallest one that
      * is at least as large as the respective texture view size, and that is at most as large as the
@@ -346,9 +346,9 @@ public class MyCameraManager {
         List<Size> notBigEnough = new ArrayList<>();
         int w = aspectRatio.getWidth();
         int h = aspectRatio.getHeight();
-        for (Size option : choices) {
+        for (Size option: choices) {
             if (option.getWidth() <= maxWidth && option.getHeight() <= maxHeight &&
-                    option.getHeight() == option.getWidth() * h / w) {
+                option.getHeight() == option.getWidth() * h / w) {
                 if (option.getWidth() >= textureViewWidth &&
                     option.getHeight() >= textureViewHeight) {
                     bigEnough.add(option);
@@ -370,7 +370,7 @@ public class MyCameraManager {
         }
     }
 
-    
+
     // @Override
     public void onResume() {
         // super.onResume();
@@ -393,9 +393,9 @@ public class MyCameraManager {
     private void setUpCameraOutputs(int width, int height) {
         CameraManager manager = (CameraManager) activity.getSystemService(Context.CAMERA_SERVICE);
         try {
-            for (String cameraId : manager.getCameraIdList()) {
+            for (String cameraId: manager.getCameraIdList()) {
                 CameraCharacteristics characteristics
-                        = manager.getCameraCharacteristics(cameraId);
+                    = manager.getCameraCharacteristics(cameraId);
 
                 // We don't use a front facing camera in this sample.
                 Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
@@ -404,17 +404,17 @@ public class MyCameraManager {
                 }
 
                 StreamConfigurationMap map = characteristics.get(
-                        CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+                    CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
                 if (map == null) {
                     continue;
                 }
 
                 // For still image captures, we use the largest available size.
                 Size largest = Collections.max(
-                        Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)),
-                        new CompareSizesByArea());
+                    Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)),
+                    new CompareSizesByArea());
 
-                
+
 
                 // Find out if we need to swap dimension to get the preview size relative to sensor
                 // coordinate.
@@ -464,16 +464,29 @@ public class MyCameraManager {
                 // Danger, W.R.! Attempting to use too large a preview size could  exceed the camera
                 // bus' bandwidth limitation, resulting in gorgeous previews but the storage of
                 // garbage capture data.
-                mPreviewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class),
+                int cameraLevel = characteristics.get(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL);
+                if (cameraLevel == CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY &&
+                    android.os.Build.VERSION.SDK_INT == android.os.Build.VERSION_CODES.LOLLIPOP
+                ) {
+                    Log.d(TAG, "LEGACY CAMERA DETECTED & OLD OS DETECTED");
+                    Size[] sizes = map.getOutputSizes(SurfaceTexture.class);
+                    for (Size option: sizes) {
+                        Log.d(TAG, "available : WIDTH: " + option.getWidth() + " HEIGHT: " + option.getHeight());
+                    }
+                    mImageReader = ImageReader.newInstance(640, 480, ImageFormat.JPEG, 2);
+                } else {
+                    Log.d(TAG, "LEGACY CAMERA NOT DETECTED");
+                    mPreviewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class),
                         rotatedPreviewWidth, rotatedPreviewHeight, maxPreviewWidth,
                         maxPreviewHeight, largest);
-                Log.d(TAG, "WIDTH: " + mPreviewSize.getWidth() + " HE:: " + mPreviewSize.getHeight());
-                
-                mImageReader = ImageReader.newInstance(mPreviewSize.getWidth(), mPreviewSize.getHeight(),
+                    mImageReader = ImageReader.newInstance(mPreviewSize.getWidth(), mPreviewSize.getHeight(),
                         ImageFormat.JPEG, 2);
+                    Log.d(TAG, "For mPreviewSize: WIDTH: " + mPreviewSize.getWidth() + " HEIGHT: " + mPreviewSize.getHeight());
+                }
+
 
                 mImageReader.setOnImageAvailableListener(
-                        mOnImageAvailableListener, mBackgroundHandler);
+                    mOnImageAvailableListener, mBackgroundHandler);
 
                 // We fit the aspect ratio of TextureView to the size of preview we picked.
                 // int orientation = getResources().getConfiguration().orientation;
@@ -587,50 +600,49 @@ public class MyCameraManager {
      */
     private void createCameraPreviewSession() {
         try {
-            
+
             // We set up a CaptureRequest.Builder with the output Surface.
             mPreviewRequestBuilder
-                    = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+                = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             mPreviewRequestBuilder.addTarget(mImageReader.getSurface());
             Log.d(TAG, "OPENING CAPTURE SESSION");
             // Here, we create a CameraCaptureSession for camera preview.
             mCameraDevice.createCaptureSession(Arrays.asList(mImageReader.getSurface()),
-                    new CameraCaptureSession.StateCallback() {
+                new CameraCaptureSession.StateCallback() {
 
-                        @Override
-                        public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
-                            // The camera is already closed
-                            if (null == mCameraDevice) {
-                                return;
-                            }
-                            Log.d(TAG, "IN onConfigured");
-                            // When the session is ready, we start displaying the preview.
-                            mCaptureSession = cameraCaptureSession;
-                            try {
-                                // Auto focus should be continuous for camera preview.
-                                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
-                                        CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-                                int displayRotation = activity.getWindowManager().getDefaultDisplay().getRotation();
-                                mPreviewRequestBuilder.set(CaptureRequest.JPEG_ORIENTATION, 
-                                        ORIENTATIONS.get(displayRotation));
-                                // Flash is automatically enabled when necessary.
-                                // setAutoFlash(mPreviewRequestBuilder);
-
-                                // Finally, we start displaying the camera preview.
-                                mPreviewRequest = mPreviewRequestBuilder.build();
-                                mCaptureSession.setRepeatingRequest(mPreviewRequest,
-                                        mCaptureCallback, mBackgroundHandler);
-                            } catch (CameraAccessException e) {
-                                e.printStackTrace();
-                            }
+                    @Override
+                    public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
+                        // The camera is already closed
+                        if (null == mCameraDevice) {
+                            return;
                         }
+                        Log.d(TAG, "IN onConfigured");
+                        // When the session is ready, we start displaying the preview.
+                        mCaptureSession = cameraCaptureSession;
+                        try {
+                            // Auto focus should be continuous for camera preview.
+                            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+                                CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+                            int displayRotation = activity.getWindowManager().getDefaultDisplay().getRotation();
+                            mPreviewRequestBuilder.set(CaptureRequest.JPEG_ORIENTATION,
+                                ORIENTATIONS.get(displayRotation));
+                            // Flash is automatically enabled when necessary.
+                            // setAutoFlash(mPreviewRequestBuilder);
 
-                        @Override
-                        public void onConfigureFailed(
-                                @NonNull CameraCaptureSession cameraCaptureSession) {
-                            Log.d(TAG, "onConfigured FAILED");
+                            // Finally, we start displaying the camera preview.
+                            mPreviewRequest = mPreviewRequestBuilder.build();
+                            mCaptureSession.setRepeatingRequest(mPreviewRequest,
+                                mCaptureCallback, mBackgroundHandler);
+                        } catch (CameraAccessException e) {
+                            e.printStackTrace();
                         }
-                    }, null
+                    }
+
+                    @Override
+                    public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
+                        Log.d(TAG, "onConfigured FAILED");
+                    }
+                }, null
             );
         } catch (CameraAccessException e) {
             e.printStackTrace();
@@ -654,27 +666,27 @@ public class MyCameraManager {
     private void setAutoFlash(CaptureRequest.Builder requestBuilder) {
         if (mFlashSupported) {
             requestBuilder.set(CaptureRequest.CONTROL_AE_MODE,
-                    CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+                CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
         }
     }
 
-   
+
 
     /**
      * Compares two {@code Size}s based on their areas.
      */
-    static class CompareSizesByArea implements Comparator<Size> {
+    static class CompareSizesByArea implements Comparator < Size > {
 
         @Override
         public int compare(Size lhs, Size rhs) {
             // We cast here to ensure the multiplications won't overflow
             return Long.signum((long) lhs.getWidth() * lhs.getHeight() -
-                    (long) rhs.getWidth() * rhs.getHeight());
+                (long) rhs.getWidth() * rhs.getHeight());
         }
 
     }
 
-    public MyCameraManager(Activity activity1){
+    public MyCameraManager(Activity activity1) {
         activity = activity1;
     }
 
